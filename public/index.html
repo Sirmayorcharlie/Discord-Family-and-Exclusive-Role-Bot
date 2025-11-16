@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Role Link Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1e1e2f;
+      color: #f0f0f0;
+      padding: 2em;
+    }
+    h1 {
+      color: #ffd700;
+    }
+    .section {
+      margin-bottom: 2em;
+    }
+    .link {
+      background: #2e2e3f;
+      padding: 1em;
+      margin: 0.5em 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .link strong {
+      color: #00ffff;
+    }
+    button {
+      background: #ff4c4c;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ff1c1c;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧭 Role Link Dashboard</h1>
+
+  <div class="section">
+    <h2>🆕 Exclusive Links</h2>
+    <div id="exclusive"></div>
+  </div>
+
+  <div class="section">
+    <h2>👶 Family Links</h2>
+    <div id="family"></div>
+  </div>
+
+  <script>
+    const guildId = '1435169514621763596';
+
+    async function loadLinks(type) {
+      const container = document.getElementById(type);
+      container.innerHTML = 'Loading...';
+
+      const res = await fetch(`/api/${type}/${guildId}`);
+      const links = await res.json();
+
+      container.innerHTML = '';
+      links.forEach(link => {
+        const div = document.createElement('div');
+        div.className = 'link';
+        div.innerHTML = `
+          ${type === 'exclusive' ? '🆕 New' : '👶 Kid'}: <strong>${link.idName}</strong>
+          → ${type === 'exclusive' ? '🧓 Old' : '👪 Parent'}: <strong>${link.targetName}</strong>
+          <button onclick="deleteLink('${type}', '${link.id}')">❌</button>
+        `;
+        container.appendChild(div);
+      });
+
+      if (links.length === 0) {
+        container.innerHTML = '<em>No links found.</em>';
+      }
+    }
+
+    async function deleteLink(type, id) {
+      await fetch(`/api/${type}/${guildId}/${id}`, { method: 'DELETE' });
+      loadLinks(type);
+    }
+
+    loadLinks('exclusive');
+    loadLinks('family');
+  </script>
+</body>
+</html>

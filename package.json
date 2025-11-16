@@ -2,6 +2,30 @@
   "dependencies": {
     "discord.js": "^14.24.2",
     "dotenv": "^17.2.3",
+<<<<<<< HEAD
     "node-persist": "^4.0.4"
   }
+=======
+    "express": "^5.1.0",
+    "node-persist": "^4.0.4"
+  },
+  "name": "discordbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot/issues"
+  },
+  "homepage": "https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot#readme",
+  "description": ""
+>>>>>>> f4f9d75 (Added Website Page)
 }
