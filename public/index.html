@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Role Link Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1e1e2f;
+      color: #f0f0f0;
+      padding: 2em;
+    }
+    h1 {
+      color: #ffd700;
+      margin-bottom: 0.5em;
+      display: inline-block;
+    }
+    #guild-name {
+        color: #00ffff;
+        font-size: 1.2em;
+        display: block;
+        margin-bottom: 1.5em;
+    }
+    .section {
+      margin-bottom: 2em;
+    }
+    .link {
+      background: #2e2e3f;
+      padding: 1em;
+      margin: 0.5em 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    button {
+      background: #ff4c4c;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    button:hover {
+      background: #ff1c1c;
+    }
+    select {
+        padding: 5px; 
+        margin-right: 10px; 
+        border-radius: 4px; 
+        border: 1px solid #555; 
+        background: #333; 
+        color: white;
+    }
+    #role-search {
+        padding: 8px;
+        margin-bottom: 15px;
+        width: 400px;
+        max-width: 100%;
+        border-radius: 4px;
+        border: 1px solid #555;
+        background: #3e3e4f;
+        color: white;
+        font-size: 1em;
+    }
+    
+  </style>
+</head>
+<body>
+  <h1>🧭 Role Link Dashboard</h1>
+  
+  <button onclick="window.location.href = '/login.html'">🔐 Change Server / Logout</button>
+
+  <span id="guild-name"></span>
+  
+  <p style="margin-top: 20px; margin-bottom: 5px;">Role Dropdown Sorting Order:</p>
+  <select id="role-sort-order" onchange="applySorting()" style="margin-bottom: 15px;">
+      <option value="hierarchy" selected>Discord Hierarchy</option>
+      <option value="name">Alphabetical Name</option>
+  </select>
+  <p>Filter roles for the forms below:</p>
+  <input type="text" id="role-search" placeholder="Type role name to filter dropdowns..." onkeyup="filterRoleDropdowns()">
+  
+  <div class="section">
+    <h2>➕ Add New Exclusive Link</h2>
+    <form id="exclusive-form" style="margin-bottom: 20px;">
+      <select id="exclusive-trigger-id" required>
+        <option value="" disabled selected>Select Trigger Role (IF)</option>
+      </select>
+      <select id="exclusive-remove-id" required>
+        <option value="" disabled selected>Select Role to Remove (THEN REMOVE)</option>
+      </select>
+      <button type="submit" style="background: #4CAF50; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">🔗 Create Exclusive Link</button>
+    </form>
+    
+    <h2>🆕 Exclusive Links</h2>
+    <div style="margin-bottom: 10px;">
+        <label for="exclusive-sort">Sort Link List By:</label>
+        <select id="exclusive-sort" onchange="loadLinks('exclusive')">
+            <option value="recent" selected>Most Recently Added</option>
+            <option value="target-hierarchy">Remove Role Hierarchy</option>
+            <option value="target-name">Remove Role Name</option>
+        </select>
+    </div>
+    <div id="exclusive"></div>
+  </div>
+
+  <div class="section">
+    <h2>➕ Add New Family Link</h2>
+    <form id="family-form" style="margin-bottom: 20px;">
+      <select id="family-kid-id" required>
+        <option value="" disabled selected>Select Kid Role</option>
+      </select>
+      <select id="family-parent-id" required>
+        <option value="" disabled selected>Select Parent Role</option>
+      </select>
+      <button type="submit" style="background: #4CAF50; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">🔗 Create Family Link</button>
+    </form>
+    
+    <h2>👶 Family Links</h2>
+    <div style="margin-bottom: 10px;">
+        <label for="family-sort">Sort Link List By:</label>
+        <select id="family-sort" onchange="loadLinks('family')">
+            <option value="recent" selected>Most Recently Added</option>
+            <option value="target-hierarchy">Parent Role Hierarchy</option>
+            <option value="target-name">Parent Role Name</option>
+        </select>
+    </div>
+    <div id="family"></div>
+  </div>
+
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const password = params.get('password');
+    let guildId = null; // Will be set after successful authentication
+
+    // Redirect to login if password is lost (on refresh)
+    if (!password) {
+        window.location.href = '/login.html'; 
+    }
+
+    // --- NEW: Custom Fetch function that includes password and Guild ID ---
+    async function authorizedFetch(url, options = {}) {
+        if (!guildId) {
+            alert('Server ID not set. Please log in again.');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        const finalUrl = url.replace(':guildId', guildId); 
+        
+        const fullUrl = `${finalUrl}${finalUrl.includes('?') ? '&' : '?'}password=${encodeURIComponent(password)}`;
+        
+        const res = await fetch(fullUrl, options);
+        
+        if (res.status === 401 || res.status === 403) {
+             alert('Authentication failed or access forbidden. Please log in again.');
+             window.location.href = '/login.html'; 
+             throw new Error('Unauthorized or Forbidden');
+        }
+        return res;
+    }
+    // --- END Custom Fetch ---
+
+    // --- FUNCTION TO CHECK PASSWORD AND GET GUILD ID (UPDATED) ---
+    async function checkAuthAndGetGuild() {
+        try {
+            const res = await fetch(`/api/auth-guild?password=${encodeURIComponent(password)}`); 
+            
+            if (res.status !== 200) {
+                 throw new Error('Invalid Password or Server Not Found.');
+            }
+            
+            const data = await res.json();
+            guildId = data.guildId; 
+
+            // =======================================================
+            // ✨ THE FIX: Remove the password query parameter from the URL
+            // =======================================================
+            if (window.history.replaceState) {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path:newUrl}, '', newUrl);
+            }
+            // =======================================================
+            
+            return true;
+        } catch (error) {
+            console.error('Initial authentication error:', error);
+            alert('Invalid password. Redirecting to login.');
+            window.location.href = '/login.html'; 
+            return false;
+        }
+    }
+    // --- END UPDATED FUNCTION ---
+
+    let allRoles = [];
+
+    function applySorting() {
+        const sortType = document.getElementById('role-sort-order').value;
+
+        if (sortType === 'name') {
+            allRoles.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+        } else if (sortType === 'hierarchy') {
+            allRoles.sort((a, b) => b.position - a.position);
+        }
+        
+        filterRoleDropdowns(); 
+    }
+
+    async function loadRoleDropdowns() {
+        if (!guildId) return;
+
+        try {
+            const res = await authorizedFetch(`/api/roles/:guildId`); 
+            const roles = await res.json();
+            
+            allRoles = roles;
+            
+            applySorting(); 
+
+        } catch (error) {
+            console.error('Failed to load roles:', error);
+        }
+    }
+    
+    function filterRoleDropdowns() {
+        const searchTerm = document.getElementById('role-search').value.toLowerCase().trim();
+        const selects = [
+            document.getElementById('exclusive-trigger-id'),
+            document.getElementById('exclusive-remove-id'),
+            document.getElementById('family-kid-id'),
+            document.getElementById('family-parent-id')
+        ];
+
+        selects.forEach(select => {
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+        });
+        
+        const filteredRoles = allRoles.filter(role => 
+            role.name.toLowerCase().includes(searchTerm)
+        );
+
+        filteredRoles.forEach(role => {
+            const optionText = `${role.name} [ID: ${role.id.substring(0, 4)}...]`; 
+            const option = new Option(optionText, role.id);
+            option.style.color = role.color; 
+
+            selects[0].add(option.cloneNode(true));
+            selects[1].add(option.cloneNode(true));
+            selects[2].add(option.cloneNode(true));
+            selects[3].add(option.cloneNode(true));
+        });
+    }
+
+    async function loadLinks(type) {
+      const container = document.getElementById(type);
+      container.innerHTML = 'Loading...';
+
+      const res = await authorizedFetch(`/api/${type}/:guildId`); 
+      let links = await res.json();
+
+      const sortType = document.getElementById(`${type}-sort`).value;
+
+      links.sort((a, b) => {
+          if (sortType === 'recent') {
+              return b.timestamp - a.timestamp;
+          } else if (sortType === 'target-hierarchy') {
+              const posA = Number(a.targetPosition) || 0;
+              const posB = Number(b.targetPosition) || 0;
+              
+              if (posB - posA === 0) {
+                  return b.timestamp - a.timestamp;
+              }
+              return posB - posA; 
+          } else if (sortType === 'target-name') {
+              return a.targetName.toLowerCase().localeCompare(b.targetName.toLowerCase());
+          }
+          return 0;
+      });
+
+      container.innerHTML = '';
+      links.forEach(link => {
+        const div = document.createElement('div');
+        div.className = 'link';
+        
+        const idSpan = `<span style="color: ${link.idColor}; font-weight: bold;">${link.idName}</span>`;
+        const targetSpan = `<span style="color: ${link.targetColor}; font-weight: bold;">${link.targetName}</span>`;
+        
+        let deleteButton;
+        if (type === 'exclusive') {
+             deleteButton = `<button onclick="deleteLink('${type}', '${link.id}', '${link.target}')">❌</button>`;
+        } else {
+             deleteButton = `<button onclick="deleteLink('${type}', '${link.id}')">❌</button>`;
+        }
+
+
+        div.innerHTML = `
+          ${type === 'exclusive' ? '🆕 Trigger Role' : '👶 Kid Role'}: ${idSpan}
+          → ${type === 'exclusive' ? '🧓 Removes Role' : '👪 Parent Role'}: ${targetSpan}
+          ${deleteButton}
+        `;
+        container.appendChild(div);
+      });
+
+      if (links.length === 0) {
+        container.innerHTML = '<em>No links found.</em>';
+      }
+    }
+
+    async function fetchGuildInfo(id) {
+        const res = await authorizedFetch(`/api/guild/:guildId`);
+        const data = await res.json();
+        
+        const guildNameElement = document.getElementById('guild-name');
+        if (data.name) {
+            guildNameElement.textContent = `Server: ${data.name} (${id})`;
+            document.title = `Dashboard: ${data.name}`;
+        } else {
+            guildNameElement.textContent = `Server ID: ${id} (Name not found)`;
+        }
+    }
+
+    async function deleteLink(type, id, targetId = null) {
+      if (!confirm(`Are you sure you want to delete the ${type} link for ID ${id}?`)) {
+        return;
+      }
+      
+      let url = `/api/${type}/:guildId/${id}`;
+      if (type === 'exclusive' && targetId) {
+          url += `?targetId=${targetId}`;
+      }
+
+      const res = await authorizedFetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        loadLinks(type); 
+      } else {
+        alert('Error deleting link: ' + (data.error || 'Unknown error'));
+      }
+    }
+    
+    async function createLink(type, data) {
+        if (!guildId) {
+            alert('Authentication failed. Please log in again.');
+            return;
+        }
+        
+        const res = await authorizedFetch(`/api/${type}/:guildId`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+            alert(result.message || `${type} link created successfully.`);
+            loadLinks(type); 
+        } else {
+            alert('Error creating link: ' + (result.message || result.error || 'Unknown error. Check console for details.'));
+            console.error('API Error:', result);
+        }
+    }
+
+
+    // --- Initialization and Form Event Listeners ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (await checkAuthAndGetGuild()) { 
+            fetchGuildInfo(guildId);
+            loadLinks('exclusive');
+            loadLinks('family');
+            loadRoleDropdowns();
+
+
+            const familyForm = document.getElementById('family-form');
+            if (familyForm) {
+                familyForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const kidId = document.getElementById('family-kid-id').value.trim();
+                    const parentId = document.getElementById('family-parent-id').value.trim();
+                    
+                    await createLink('family', { kidId: kidId, parentId: parentId });
+                });
+            }
+
+            const exclusiveForm = document.getElementById('exclusive-form');
+            if (exclusiveForm) {
+                exclusiveForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const triggerId = document.getElementById('exclusive-trigger-id').value.trim();
+                    const removeId = document.getElementById('exclusive-remove-id').value.trim();
+                    
+                    await createLink('exclusive', { triggerId: triggerId, removeId: removeId });
+                });
+            }
+        }
+    });
+
+  </script>
+</body>
+</html>

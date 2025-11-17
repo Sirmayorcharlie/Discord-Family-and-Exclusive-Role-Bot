@@ -1,0 +1,22 @@
+{
+  "name": "discord-family-and-exclusive-role-bot",
+  "version": "1.2.1",
+  "description": "A Discord bot for managing linked and conflicting roles.",
+  "main": "Main.js",
+  "scripts": {
+    "start": "node Main.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "roles",
+    "discord.js"
+  ],
+  "author": "Sirmayorcharlie",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
