@@ -1,31 +1,22 @@
 {
-  "dependencies": {
-    "discord.js": "^14.24.2",
-    "dotenv": "^17.2.3",
-<<<<<<< HEAD
-    "node-persist": "^4.0.4"
-  }
-=======
-    "express": "^5.1.0",
-    "node-persist": "^4.0.4"
-  },
-  "name": "discordbot",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "discord-family-and-exclusive-role-bot",
+  "version": "1.2.1",
+  "description": "A Discord bot for managing linked and conflicting roles.",
+  "main": "Main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node Main.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot.git"
-  },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "discord",
+    "bot",
+    "roles",
+    "discord.js"
+  ],
+  "author": "Sirmayorcharlie",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot/issues"
-  },
-  "homepage": "https://github.com/Sirmayorcharlie/Discord-Family-and-Exclusive-Role-Bot#readme",
-  "description": ""
->>>>>>> f4f9d75452e83fce555746cee488c244b25c5790
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
 }

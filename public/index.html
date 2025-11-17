@@ -14,7 +14,7 @@
     h1 {
       color: #ffd700;
       margin-bottom: 0.5em;
-      display: inline-block;
+      display: inline-block; /* Allows button next to it */
     }
     #guild-name {
         color: #00ffff;
@@ -44,19 +44,19 @@
       padding: 0.5em 1em;
       border-radius: 6px;
       cursor: pointer;
-      margin-left: 10px;
+      margin-left: 10px; /* Spacing for the buttons */
     }
     button:hover {
       background: #ff1c1c;
     }
+    /* Style for the new server selector */
     #server-list {
         background: #2e2e3f;
         border: 1px solid #00ffff;
         padding: 15px;
         margin-top: 20px;
-        margin-bottom: 20px;
         border-radius: 8px;
-        display: none;
+        display: none; /* Hidden by default */
     }
     #server-list a {
         display: block;
@@ -66,7 +66,6 @@
         text-decoration: none;
         background: #3e3e4f;
         border-radius: 4px;
-        transition: background 0.2s;
     }
     #server-list a:hover {
         background: #5e5e6f;
@@ -83,7 +82,7 @@
   
   <div id="server-list">
       <h3>Select a Server:</h3>
-  </div>
+      </div>
 
   <div class="section">
     <h2>🆕 Exclusive Links</h2>
@@ -101,20 +100,22 @@
 
     if (!guildId) {
         document.body.innerHTML = '<h1>Error: Guild ID Missing</h1><p>Please use the "🔗 Change Server" button to select a server or access the dashboard using a URL like: <code>http://localhost:3000/?guild=YOUR_GUILD_ID</code></p>';
-        document.getElementById('server-list').style.display = 'block';
+        document.getElementById('server-list').style.display = 'block'; // Show list if ID is missing
         loadServerList();
     } else {
         fetchGuildInfo(guildId);
         loadLinks('exclusive');
         loadLinks('family');
-        loadServerList();
+        loadServerList(); // Load list in the background
     }
 
+    // Function to toggle the server selector display
     function toggleServerList() {
         const list = document.getElementById('server-list');
         list.style.display = list.style.display === 'block' ? 'none' : 'block';
     }
 
+    // Function to fetch all guilds and display them as links
     async function loadServerList() {
         const listContainer = document.getElementById('server-list');
         
@@ -127,16 +128,18 @@
                 return;
             }
 
-            // Keep the header, clear previous links
-            let listContent = '<h3>Select a Server:</h3>';
+            listContainer.innerHTML = '<h3>Select a Server:</h3>';
             
             guilds.forEach(guild => {
-                const isCurrent = guild.id === guildId;
-                const style = isCurrent ? 'style="border: 2px solid #ffd700;"' : '';
-                listContent += `<a href="/?guild=${guild.id}" ${style}>${guild.name} (${guild.id})</a>`;
+                const link = document.createElement('a');
+                // The key part: setting the link to redirect to the current URL + the new guild ID
+                link.href = `/?guild=${guild.id}`;
+                link.textContent = `${guild.name} (${guild.id})`;
+                if (guild.id === guildId) {
+                    link.style.border = '2px solid #ffd700'; // Highlight the current server
+                }
+                listContainer.appendChild(link);
             });
-            listContainer.innerHTML = listContent;
-            
         } catch (error) {
             console.error('Failed to load server list:', error);
             listContainer.innerHTML = '<h3>Error loading server list.</h3>';
@@ -169,7 +172,7 @@
         div.className = 'link';
         div.innerHTML = `
           ${type === 'exclusive' ? '🆕 New' : '👶 Kid'}: <strong>${link.idName}</strong>
-          → ${type === 'exclusive' ? '🧓 Old' : '👪 Parent'}: <strong><strong>${link.targetName}</strong>
+          → ${type === 'exclusive' ? '🧓 Old' : '👪 Parent'}: <strong>${link.targetName}</strong>
           <button onclick="deleteLink('${type}', '${link.id}')">❌</button>
         `;
         container.appendChild(div);

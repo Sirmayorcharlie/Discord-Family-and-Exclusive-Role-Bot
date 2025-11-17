@@ -93,7 +93,7 @@ const getLinks = async (type, guildId) => {
 app.use(express.json());
 app.use(express.static('public'));
 
-// 1. API route to list all guilds (for server selector)
+// 1. NEW ROUTE: List all guilds bot is in (for server selector)
 app.get('/api/guilds', (req, res) => {
     const guilds = client.guilds.cache.map(guild => ({
         id: guild.id,
@@ -102,7 +102,7 @@ app.get('/api/guilds', (req, res) => {
     res.json(guilds);
 });
 
-// 2. API route to fetch a single Guild's name
+// 2. Existing route to fetch single Guild name (for current view title)
 app.get('/api/guild/:guildId', async (req, res) => {
     const { guildId } = req.params;
     const guild = client.guilds.cache.get(guildId);
@@ -114,14 +114,12 @@ app.get('/api/guild/:guildId', async (req, res) => {
     }
 });
 
-// 3. API route to fetch links for a specific type and guild
 app.get('/api/:type/:guildId', async (req, res) => {
   const { type, guildId } = req.params;
   const links = await getLinks(type, guildId);
   res.json(links);
 });
 
-// 4. API route to delete a link
 app.delete('/api/:type/:guildId/:id', (req, res) => {
   const { type, guildId, id } = req.params;
   const filePath = path.join(getStoragePath(type, guildId), `${id}.txt`);
