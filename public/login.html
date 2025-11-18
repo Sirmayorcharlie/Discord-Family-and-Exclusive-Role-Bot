@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Charlie's Awesome Roels Bot Login</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1e1e2f;
+      color: #f0f0f0;
+      padding: 2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    .login-box {
+      background: #2e2e3f;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      width: 300px;
+    }
+    h1 {
+      color: #ffd700;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+    p {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+    }
+    input[type="password"] {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      border: 1px solid #00ffff;
+      background: #3e3e4f;
+      color: white;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #error-message {
+      color: #ff4c4c;
+      margin-top: 15px;
+      margin-bottom: 0;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>Charlie's Awesome Roels Bot Login</h1>
+    <p>Input password below centered</p>
+    <p id="error-message"></p>
+    <form id="login-form">
+      <input type="password" id="password-input" placeholder="(Password Box)" required autofocus>
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+  
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password-input').value;
+      
+      if (!password) {
+        document.getElementById('error-message').textContent = "Please enter the password.";
+        return;
+      }
+
+      // Redirect to the dashboard (index.html) with the password as a query parameter
+      window.location.href = `/index.html?password=${encodeURIComponent(password)}`;
+    });
+  </script>
+</body>
+</html>
